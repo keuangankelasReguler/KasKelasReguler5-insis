@@ -321,7 +321,112 @@ function renderProgress(){const y=currentYear(),m=currentMonth(),total=db.member
 function totalPaymentsReceived(){return db.payments.reduce((sum,p)=>sum+Number(p.amount||0),0)}
 function totalCashDeposited(){return db.transactions.filter(t=>t.type==='income'&&t.category==='Setoran kas anggota').reduce((sum,t)=>sum+Number(t.amount||0),0)}
 function pendingCash(){return Math.max(0,totalPaymentsReceived()-totalCashDeposited())}
-function depositAllCash(){if(!isManager)return toast('Mode baca-saja');const amount=pendingCash();if(amount<=0)return toast('Tidak ada kas yang menunggu disetorkan');if(!confirm('Setorkan seluruh kas anggota yang belum disetorkan sebesar '+money(amount)+' ke pemasukan kas utama?'))return;db.transactions.push({id:uid(),date:isoToday(),description:'Setoran kas anggota',category:'Setoran kas anggota',type:'income',amount,method:'Tunai',note:'Setoran seluruh kas anggota yang belum disetorkan',paymentId:false});save();toast('Seluruh kas berhasil dicatat sebagai pemasukan')}
+function depositAllCash() {
+    if (!isManager) {
+        return toast('Mode baca-saja');
+    }
+
+    const suggestedAmount = pendingCash();
+
+    openModal('Setorkan Semua Kas', `
+        <form id="depositAllCashForm">
+            <div class="notice">
+                Masukkan nominal pemasukan yang ingin dicatat.
+                Nominal ini akan masuk ke Transaksi Keuangan
+                dan Laporan Keuangan.
+            </div>
+
+            <div class="form-grid">
+                <div class="field full">
+                    <label>Nominal Pemasukan (Rp) *</label>
+                    <input
+                        name="amount"
+                        type="number"
+                        min="1"
+                        step="1"
+                        required
+                        value="${suggestedAmount}"
+                        placeholder="Contoh: 70000"
+                    >
+                </div>
+
+                <div class="field full">
+                    <label>Tanggal Transaksi *</label>
+                    <input
+                        name="date"
+                        type="date"
+                        required
+                        value="${isoToday()}"
+                    >
+                </div>
+
+                <div class="field full">
+                    <label>Keterangan</label>
+                    <input
+                        name="note"
+                        type="text"
+                        value="Setoran semua kas"
+                        placeholder="Keterangan transaksi"
+                    >
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    class="btn btn-light"
+                    onclick="closeModal()"
+                >
+                    Batal
+                </button>
+
+                <button type="submit" class="btn btn-primary">
+                    Catat Pemasukan
+                </button>
+            </div>
+        </form>
+    `);
+
+    document.getElementById('depositAllCashForm').onsubmit = function (e) {
+        e.preventDefault();
+
+        const form = new FormData(e.target);
+        const amount = Number(form.get('amount'));
+        const date = form.get('date');
+        const note = String(form.get('note') || '').trim();
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+            return toast('Nominal pemasukan harus lebih dari Rp0');
+        }
+
+        if (!date) {
+            return toast('Tanggal transaksi wajib diisi');
+        }
+
+        if (!confirm(
+            'Catat pemasukan sebesar ' + money(amount) + '?'
+        )) {
+            return;
+        }
+
+        db.transactions.push({
+            id: uid(),
+            date: date,
+            description: 'Setoran kas anggota',
+            category: 'Setoran kas anggota',
+            type: 'income',
+            amount: amount,
+            method: 'Tunai',
+            note: note || 'Setoran semua kas',
+            paymentId: false
+        });
+
+        closeModal();
+        save();
+
+        toast('Pemasukan berhasil dicatat');
+    };
+}
 function cancelPayment(memberId,y,m){if(!isManager)return toast('Mode baca-saja');const p=getPayment(memberId,y,m);if(!p)return toast('Pembayaran tidak ditemukan');const member=db.members.find(x=>x.id===memberId);if(!confirm('Batalkan catatan pembayaran '+(member?.name||'anggota')+' untuk '+monthName(y,m)+'? Status akan kembali belum lunas. Pastikan uangnya memang belum diterima atau sudah dikembalikan.'))return;db.payments=db.payments.filter(x=>x!==p);save();toast('Catatan pembayaran dibatalkan')}
 function renderTransactions(){const q=(document.getElementById('transactionSearch')?.value||'').toLowerCase(),type=document.getElementById('transactionType')?.value||'all';const list=[...db.transactions].filter(t=>(type==='all'||t.type===type)&&(t.description+' '+t.category+' '+(t.note||'')).toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));const el=document.getElementById('transactionsTable');el.innerHTML=list.length?list.map(t=>`<tr><td>${esc(t.date)}</td><td><strong>${esc(t.description)}</strong>${t.note?`<br><small class="muted">${esc(t.note)}</small>`:''}</td><td>${esc(t.category)}</td><td><span class="pill ${t.type==='income'?'income':'expense'}">${t.type==='income'?'Pemasukan':'Pengeluaran'}</span></td><td class="${t.type==='income'?'green':'red'}">${t.type==='income'?'+':'−'} ${money(t.amount)}</td><td><button class="btn btn-danger btn-sm" onclick="deleteTransaction('${t.id}')">Hapus</button></td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">⇄<b>Belum ada transaksi</b>Catat pemasukan atau pengeluaran pertama.</div></td></tr>';document.getElementById('transactionCount').textContent=`${list.length} transaksi`}
 document.getElementById('transactionSearch').addEventListener('input',renderTransactions);document.getElementById('transactionType').onchange=renderTransactions;
