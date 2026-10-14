@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0f172a">
+  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KasKelas INSIS | Ilmu Al-Qur’an dan Tafsir</title>
@@ -416,5 +419,15 @@ function editStructure(){if(!isManager)return toast('Hanya pengelola yang dapat 
 
 initSelects();lockApp();document.getElementById('sessionButton').style.display='none';supabaseClient.auth.getSession().then(async({data})=>{if(data.session){currentUser=data.session.user;isManager=true;try{await loadManagerData();document.querySelectorAll('.nav button[data-page]').forEach(b=>b.style.display='flex');showApp();renderAll();go('dashboard')}catch(err){console.error(err);isManager=false;lockApp();setAuthError('Sesi ditemukan, tetapi data gagal dimuat. Silakan masuk kembali.')}}});
 </script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js")
+        .catch((error) => {
+          console.error("Service Worker gagal:", error);
+        });
+    });
+  }
+ </script>
 </body>
 </html>
