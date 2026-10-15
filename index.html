@@ -314,7 +314,202 @@ document.getElementById('modalBackdrop').addEventListener('click',e=>{if(e.targe
 function openMemberModal(id=''){if(!isManager)return toast('Mode baca-saja');const m=db.members.find(x=>x.id===id)||{name:'',number:'',contact:'',classNote:''};openModal(id?'Edit Anggota':'Tambah Anggota',`<form id="memberForm"><div class="form-grid"><div class="field full"><label>Nama lengkap *</label><input name="name" required value="${esc(m.name)}" placeholder="Nama anggota"></div><div class="field"><label>Nomor induk / absen</label><input name="number" value="${esc(m.number)}" placeholder="Contoh: 01 / 12345"></div><div class="field"><label>Kontak</label><input name="contact" value="${esc(m.contact)}" placeholder="No. HP (opsional)"></div><div class="field full"><label>Keterangan</label><input name="classNote" value="${esc(m.classNote)}" placeholder="Opsional"></div></div><div class="modal-actions"><button type="button" class="btn btn-light" onclick="closeModal()">Batal</button><button class="btn btn-primary">Simpan Anggota</button></div></form>`);document.getElementById('memberForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);const obj={id:id||uid(),name:f.get('name').trim(),number:f.get('number').trim(),contact:f.get('contact').trim(),classNote:f.get('classNote').trim()};if(id)db.members=db.members.map(x=>x.id===id?obj:x);else db.members.push(obj);closeModal();save();toast('Data anggota berhasil disimpan')}}
 function editMember(id){if(!isManager)return toast('Mode baca-saja');openMemberModal(id)}
 function deleteMember(id){if(!isManager)return toast('Mode baca-saja');const m=db.members.find(x=>x.id===id);if(!m||!confirm(`Hapus anggota ${m.name}? Riwayat pembayaran anggota ini juga akan dihapus.`))return;db.members=db.members.filter(x=>x.id!==id);db.payments=db.payments.filter(p=>p.memberId!==id);save();toast('Anggota dihapus')}
-function renderPayments(){const y=Number(document.getElementById('paymentYear')?.value||currentYear()),m=Number(document.getElementById('paymentMonth')?.value??currentMonth()),q=(document.getElementById('paymentSearch')?.value||'').toLowerCase();const target=db.members.length*Number(db.settings.dues||0);let paid=0;const list=db.members.filter(x=>x.name.toLowerCase().includes(q));list.forEach(x=>paid+=paidAmount(x.id,y,m));document.getElementById('targetCash').textContent=money(target);document.getElementById('paidCash').textContent=money(db.members.reduce((a,x)=>a+paidAmount(x.id,y,m),0));document.getElementById('unpaidCash').textContent=money(Math.max(0,target-db.members.reduce((a,x)=>a+paidAmount(x.id,y,m),0)));const el=document.getElementById('paymentsTable');el.innerHTML=list.length?list.map(member=>{const amount=paidAmount(member.id,y,m),due=Number(db.settings.dues||0),status=statusFor(amount,due);return `<tr><td><div class="person"><div class="mini-avatar">${esc(initials(member.name))}</div><div><strong>${esc(member.name)}</strong><small>${esc(member.number||'Anggota')}</small></div></div></td><td>${money(due)}</td><td class="green">${money(amount)}</td><td class="${due-amount>0?'red':'green'}">${money(Math.max(0,due-amount))}</td><td>${badgeStatus(status)}</td><td>${isManager?`${amount?`<button class="btn btn-light btn-sm" onclick="openPaymentModal('${member.id}')">Tambah bayar</button> <button class="btn btn-danger btn-sm" onclick="cancelPayment('${member.id}',${y},${m})">Batalkan</button>`:`<button class="btn btn-light btn-sm" onclick="openPaymentModal('${member.id}')">Catat bayar</button>`}`:'—'}</td></tr>`}).join(''):'<tr><td colspan="6"><div class="empty"><b>Belum ada anggota</b>Tambahkan anggota terlebih dahulu di menu Data Anggota.</div></td></tr>';document.getElementById('paymentCount').textContent=`Periode: ${monthName(y,m)} • ${list.length} anggota`}
+function renderPayments() {
+    const y = Number(
+        document.getElementById('paymentYear')?.value || currentYear()
+    );
+
+    const m = Number(
+        document.getElementById('paymentMonth')?.value ?? currentMonth()
+    );
+
+    const q = (
+        document.getElementById('paymentSearch')?.value || ''
+    ).toLowerCase();
+
+    const target = db.members.length * Number(db.settings.dues || 0);
+
+    const list = db.members.filter(member =>
+        member.name.toLowerCase().includes(q)
+    );
+
+    document.getElementById('targetCash').textContent = money(target);
+
+    document.getElementById('paidCash').textContent = money(
+        db.members.reduce(
+            (total, member) => total + paidAmount(member.id, y, m),
+            0
+        )
+    );
+
+    document.getElementById('unpaidCash').textContent = money(
+        Math.max(
+            0,
+            target - db.members.reduce(
+                (total, member) => total + paidAmount(member.id, y, m),
+                0
+            )
+        )
+    );
+
+    const el = document.getElementById('paymentsTable');
+
+    el.innerHTML = list.length
+        ? list.map(member => {
+            const amount = paidAmount(member.id, y, m);
+            const due = Number(db.settings.dues || 0);
+            const remaining = Math.max(0, due - amount);
+            const status = statusFor(amount, due);
+
+            let actions = '—';
+
+            if (isManager) {
+                if (amount > 0) {
+                    actions = `
+                        <button class="btn btn-light btn-sm"
+                            onclick="openPaymentModal('${member.id}')">
+                            Tambah bayar
+                        </button>
+
+                        <button class="btn btn-danger btn-sm"
+                            onclick="cancelPayment('${member.id}',${y},${m})">
+                            Batalkan
+                        </button>
+                    `;
+                } else {
+                    actions = `
+                        <button class="btn btn-light btn-sm"
+                            onclick="openPaymentModal('${member.id}')">
+                            Catat bayar
+                        </button>
+                    `;
+                }
+
+                if (remaining > 0) {
+                    actions += `
+                        <button class="btn btn-success btn-sm"
+                            onclick="sendPaymentReminder('${member.id}',${y},${m})">
+                            WA Pengingat
+                        </button>
+                    `;
+                }
+            }
+
+            return `
+                <tr>
+                    <td>
+                        <div class="person">
+                            <div class="mini-avatar">
+                                ${esc(initials(member.name))}
+                            </div>
+
+                            <div>
+                                <strong>${esc(member.name)}</strong>
+                                <small>${esc(member.number || 'Anggota')}</small>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>${money(due)}</td>
+
+                    <td class="green">${money(amount)}</td>
+
+                    <td class="${remaining > 0 ? 'red' : 'green'}">
+                        ${money(remaining)}
+                    </td>
+
+                    <td>${badgeStatus(status)}</td>
+
+                    <td>${actions}</td>
+                </tr>
+            `;
+        }).join('')
+        : `
+            <tr>
+                <td colspan="6">
+                    <div class="empty">
+                        <b>Belum ada anggota</b>
+                        Tambahkan anggota terlebih dahulu di menu Data Anggota.
+                    </div>
+                </td>
+            </tr>
+        `;
+
+    document.getElementById('paymentCount').textContent =
+        `Periode: ${monthName(y, m)} • ${list.length} anggota`;
+}
+
+function sendPaymentReminder(memberId, year, month) {
+    const member = db.members.find(
+        item => item.id === memberId
+    );
+
+    if (!member) {
+        return toast('Data anggota tidak ditemukan.');
+    }
+
+    if (!isManager) {
+        return toast('Hanya bendahara yang dapat mengirim pengingat.');
+    }
+
+    if (!member.contact || !member.contact.trim()) {
+        return toast(
+            'Nomor WhatsApp belum diisi. Silakan periksa Data Anggota.'
+        );
+    }
+
+    const due = Number(db.settings.dues || 0);
+    const paid = paidAmount(memberId, year, month);
+    const remaining = Math.max(0, due - paid);
+
+    if (remaining <= 0) {
+        return toast('Anggota ini sudah melunasi kas.');
+    }
+
+    // Normalisasi nomor Indonesia:
+    // 0812... menjadi 62812...
+    // 812... menjadi 62812...
+    // 62812... tetap 62812...
+    let phone = member.contact.replace(/\D/g, '');
+
+    if (phone.startsWith('0')) {
+        phone = '62' + phone.substring(1);
+    } else if (phone.startsWith('8')) {
+        phone = '62' + phone;
+    } else if (phone.startsWith('62')) {
+        // Nomor sudah menggunakan kode negara Indonesia.
+    } else {
+        return toast(
+            'Format nomor tidak dikenali. Periksa nomor WhatsApp anggota.'
+        );
+    }
+
+    const period = monthName(year, month);
+
+    const message =
+`🌿 Assalamu’alaikum warahmatullahi wabarakatuh.
+
+Bismillah.
+
+📢 Afwan, izin mengingatkan dengan penuh hormat mengenai pembayaran uang kas kelas untuk bulan ${period} sebesar ${money(remaining)} yang masih belum terlunasi.
+
+🤲 Mohon kesediaannya untuk menyelesaikan pembayaran tersebut. Semoga Allah membalas kebaikan, memberkahi rezeki, dan menjadikan setiap urusan kita sebagai jalan kebaikan.
+
+✅ Apabila pembayaran sudah dilakukan, Jazakumullahu khairan katsiran atas konfirmasinya. Mohon abaikan pesan ini jika sudah melunasi.
+
+🌸 بَارَكَ اللَّهُ فِيكُمْ
+
+📩 Wassalamu’alaikum warahmatullahi wabarakatuh.`;
+
+    const url =
+        'https://wa.me/' +
+        phone +
+        '?text=' +
+        encodeURIComponent(message);
+
+    window.open(url, '_blank');
+}
+  
 document.getElementById('paymentMonth').onchange=renderPayments;document.getElementById('paymentYear').onchange=renderPayments;document.getElementById('paymentSearch').oninput=renderPayments;
 function openPaymentModal(memberId=''){if(!isManager)return toast('Mode baca-saja');if(!db.members.length){toast('Tambahkan anggota terlebih dahulu');go('members');return}const y=Number(document.getElementById('paymentYear').value),m=Number(document.getElementById('paymentMonth').value);openModal('Catat Pembayaran Kas',`<form id="paymentForm"><div class="form-grid"><div class="field full"><label>Anggota *</label><select name="memberId" required>${db.members.map(x=>`<option value="${x.id}" ${x.id===memberId?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div><div class="field"><label>Bulan</label><select name="month">${MONTHS.map((x,i)=>`<option value="${i}" ${i===m?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Tahun</label><input name="year" type="number" value="${y}" required></div><div class="field full"><label>Nominal pembayaran (Rp) *</label><input name="amount" type="number" min="1" step="1" required value="${db.settings.dues}"></div><div class="field"><label>Tanggal bayar</label><input name="date" type="date" value="${isoToday()}" required></div><div class="field"><label>Metode</label><select name="method"><option>Tunai</option><option>Transfer</option><option>E-wallet</option></select></div><div class="field full"><label>Catatan</label><input name="note" placeholder="Opsional"></div></div><div class="modal-actions"><button type="button" class="btn btn-light" onclick="closeModal()">Batal</button><button class="btn btn-primary">Simpan Pembayaran</button></div></form>`);document.getElementById('paymentForm').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),mid=f.get('memberId'),yr=Number(f.get('year')),mo=Number(f.get('month')),amt=Number(f.get('amount')),key=monthKey(yr,mo);let p=db.payments.find(x=>x.memberId===mid&&x.month===key);if(p){p.amount+=amt;p.date=f.get('date');p.method=f.get('method');p.note=f.get('note')}else db.payments.push({id:uid(),memberId:mid,month:key,amount:amt,date:f.get('date'),method:f.get('method'),note:f.get('note')});closeModal();save();toast('Pembayaran anggota berhasil dicatat. Uang masuk ke kas belum disetorkan.')}}
 function renderProgress(){const y=currentYear(),m=currentMonth(),total=db.members.length,due=Number(db.settings.dues||0);let paid=0,partial=0,unpaid=0;db.members.forEach(x=>{let a=paidAmount(x.id,y,m);if(a>=due&&due>0)paid++;else if(a>0)partial++;else unpaid++});const pct=total?Math.round(paid/total*100):0;document.getElementById('paymentRate').textContent=pct+'% lunas';const list=[['Lunas',paid,total?'#':0],['Sebagian',partial],['Belum bayar',unpaid]];document.getElementById('paymentProgress').innerHTML=list.map(([name,n])=>`<div class="progress-row"><div class="progress-meta"><span>${name}</span><span>${n} anggota · ${total?Math.round(n/total*100):0}%</span></div><div class="track"><div style="width:${total?n/total*100:0}%;background:${name==='Belum bayar'?'#f0b45b':name==='Sebagian'?'#7e9de8':''}"></div></div></div>`).join('')}
