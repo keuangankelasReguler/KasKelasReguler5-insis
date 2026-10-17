@@ -146,6 +146,152 @@ tbody tr:hover{background:#f4faf8}
   }
 }
   
+/* ===== FIX FINAL TEMA CREAM MOCCA ===== */
+
+/* Latar dasar halaman */
+body {
+  background: #F5EBDD !important;
+  color: #49372F !important;
+}
+
+/* Sidebar: mocca gelap, terpisah dari konten */
+.sidebar {
+  background: linear-gradient(
+    180deg,
+    #3F3029 0%,
+    #594337 55%,
+    #6B503D 100%
+  ) !important;
+  color: #FFF4E8 !important;
+  border-right: 1px solid #D6BE9F;
+}
+
+/* Logo dan teks identitas */
+.sidebar .brand,
+.sidebar .brand strong,
+.sidebar .brand small {
+  color: #FFF4E8 !important;
+}
+
+/* Label MENU UTAMA dan PREFERENSI */
+.sidebar .nav-label {
+  color: #D9BFA0 !important;
+}
+
+/* Semua tombol menu dan ikonnya */
+.sidebar .nav button,
+.sidebar .nav button .ico {
+  color: #F7EBDD !important;
+}
+
+/* Menu aktif dan hover */
+.sidebar .nav button.active,
+.sidebar .nav button:hover {
+  background: #755740 !important;
+  color: #FFFFFF !important;
+}
+
+.sidebar .nav button.active {
+  box-shadow: inset 4px 0 #E4C69A !important;
+}
+
+/* Bagian bawah sidebar */
+.sidebar .side-bottom {
+  border-top-color: #80654E !important;
+  color: #E8D5BF !important;
+}
+
+/* Area dashboard dan halaman lain */
+.main {
+  background: #F5EBDD !important;
+  color: #49372F !important;
+}
+
+/* Judul halaman */
+.topbar h1,
+.section-title h2,
+.panel-head h3 {
+  color: #49372F !important;
+}
+
+/* Kartu dashboard */
+.stat,
+.panel,
+.report-box {
+  background: #FFF9F0 !important;
+  border-color: #E4D3BD !important;
+}
+
+/* Kolom tabel */
+th {
+  background: #EFE1CF !important;
+  color: #594337 !important;
+}
+
+td {
+  color: #49372F;
+  border-bottom-color: #EADCCB !important;
+}
+
+/* Kartu sambutan dashboard */
+.welcome {
+  background: linear-gradient(
+    115deg,
+    #76563E,
+    #A17B59
+  ) !important;
+  color: #FFF8EF !important;
+}
+
+.welcome h2,
+.welcome p,
+.welcome .month {
+  color: #FFF8EF !important;
+}
+
+/* Formulir dan modal */
+.field label {
+  color: #594337 !important;
+}
+
+.field input,
+.field select,
+.field textarea,
+.search,
+.select-small {
+  background: #FFFCF7 !important;
+  color: #49372F !important;
+  border-color: #DCC8AE !important;
+}
+
+.modal {
+  background: #FFF9F0 !important;
+  color: #49372F !important;
+}
+
+/* Tampilan HP */
+@media (max-width: 760px) {
+  .sidebar {
+    background: linear-gradient(
+      180deg,
+      #3F3029,
+      #6B503D
+    ) !important;
+    z-index: 100 !important;
+  }
+
+  .sidebar .nav button,
+  .sidebar .nav button .ico,
+  .sidebar .side-bottom {
+    color: #F7EBDD !important;
+  }
+
+  .main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}
+  
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
