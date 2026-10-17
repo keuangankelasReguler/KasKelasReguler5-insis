@@ -395,7 +395,65 @@ main,
 .btn-primary {
   color: #FFFFFF !important;
 }
+/* ===== FIX SIDEBAR DAN DASHBOARD HP ===== */
 
+/* Sidebar harus tetap berwarna mocca gelap */
+aside#sidebar,
+.sidebar {
+  background: #49372F !important;
+  color: #FFF4E8 !important;
+  border-right: 1px solid #725640 !important;
+}
+
+/* Tulisan menu sidebar */
+aside#sidebar .nav button,
+aside#sidebar .nav button *,
+aside#sidebar .nav-label,
+aside#sidebar .side-bottom,
+aside#sidebar .side-bottom * {
+  color: #FFF4E8 !important;
+}
+
+/* Menu yang tidak aktif */
+aside#sidebar .nav button:not(.active) {
+  background: transparent !important;
+}
+
+/* Menu yang aktif */
+aside#sidebar .nav button.active {
+  background: #604838 !important;
+  color: #FFFFFF !important;
+  border-left: 4px solid #D9B98C !important;
+}
+
+/* Bagian konten utama tetap cream */
+main,
+.main-content,
+.content,
+.page-content {
+  background-color: #F4EBDD;
+  color: #3D2B22;
+}
+
+/* Pastikan judul halaman terbaca */
+main h1,
+main h2,
+main h3 {
+  color: #49372F;
+}
+
+/* Tampilan ponsel */
+@media (max-width: 760px) {
+  aside#sidebar {
+    background: #49372F !important;
+    color: #FFF4E8 !important;
+  }
+
+  aside#sidebar .nav button,
+  aside#sidebar .nav button * {
+    color: #FFF4E8 !important;
+  }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
