@@ -932,6 +932,13 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
   🔔 Aktifkan Notifikasi
 </button>
 <p id="pushStatus" role="status"></p>
+  <script>
+document.getElementById("enablePushBtn")
+  .addEventListener("click", function () {
+    document.getElementById("pushStatus").textContent =
+      "Tombol berfungsi! JavaScript berhasil berjalan.";
+  });
+</script>
 
 <script>
 const SUPABASE_URL =
