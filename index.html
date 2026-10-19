@@ -932,26 +932,19 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
   🔔 Aktifkan Notifikasi
 </button>
 <p id="pushStatus" role="status"></p>
-  <script>
-document.getElementById("enablePushBtn")
-  .addEventListener("click", function () {
-    document.getElementById("pushStatus").textContent =
-      "Tombol berfungsi! JavaScript berhasil berjalan.";
-  });
 
 <script>
 const SUPABASE_URL =
   "https://aphawcqvvgzrxdifmknj.supabase.co";
 
-const SUPABASE_ANON_KEY = "sb_publishable_YL0f1iA20zDA5n-uFvA9CQ_IySbslPA";
-const VAPID_PUBLIC_KEY = "BBMP7KLb0k54M_N-cewqWh5K4jp5c5DpO4lP4E1y_l5OLcGzdLxUi2j5CtOfYO6JFg4Psi3el137jllA5I7_y68";
+const SUPABASE_ANON_KEY = "ISI_PUBLISHABLE_KEY_KAMU";
+const VAPID_PUBLIC_KEY = "ISI_VAPID_PUBLIC_KEY_KAMU";
 
 function decodeVapidKey(key) {
   const padding = "=".repeat((4 - key.length % 4) % 4);
   const base64 = (key + padding)
     .replace(/-/g, "+")
     .replace(/_/g, "/");
-
   const raw = atob(base64);
   return Uint8Array.from(raw, c => c.charCodeAt(0));
 }
@@ -971,33 +964,18 @@ pushButton.addEventListener("click", async () => {
     }
 
     const permission = await Notification.requestPermission();
-
     if (permission !== "granted") {
       throw new Error("Izin notifikasi belum diberikan.");
     }
 
     const registration = await navigator.serviceWorker.register(
-      "/KasKelasReguler5-insis/service-worker.js",
-      { scope: "/KasKelasReguler5-insis/" }
+      "./service-worker.js",
+      { scope: "./" }
     );
 
     await navigator.serviceWorker.ready;
 
-    let subscription =
-      await registration.pushManager.getSubscription();
-
-    if (subscription) {
-      const existingKey = subscription.options.applicationServerKey;
-      const currentKey = decodeVapidKey(VAPID_PUBLIC_KEY);
-
-      if (
-        existingKey &&
-        !existingKey.every((byte, i) => byte === currentKey[i])
-      ) {
-        await subscription.unsubscribe();
-        subscription = null;
-      }
-    }
+    let subscription = await registration.pushManager.getSubscription();
 
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
@@ -1022,16 +1000,13 @@ pushButton.addEventListener("click", async () => {
     );
 
     if (!response.ok) {
-      throw new Error(
-        "Pendaftaran gagal (HTTP " + response.status +
-        "). Periksa konfigurasi Edge Function."
-      );
+      throw new Error("Pendaftaran gagal (HTTP " + response.status + ").");
     }
 
-    pushStatus.textContent =
-      "Pendaftaran notifikasi berhasil!";
+    pushStatus.textContent = "Pendaftaran notifikasi berhasil!";
   } catch (error) {
-    pushStatus.textContent = error.message;
+    console.error(error);
+    pushStatus.textContent = "Gagal: " + error.message;
   } finally {
     pushButton.disabled = false;
   }
