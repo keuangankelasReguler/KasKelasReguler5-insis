@@ -927,8 +927,12 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
     });
   }
  </script>
-  
-<button id="enablePushBtn" type="button">
+  <button
+  id="enablePushBtn"
+  type="button"
+  onclick="alert('Tombol berhasil diklik!')"
+  style="position:relative; z-index:99999; pointer-events:auto; cursor:pointer;"
+>
   🔔 Aktifkan Notifikasi
 </button>
 <p id="pushStatus" role="status"></p>
