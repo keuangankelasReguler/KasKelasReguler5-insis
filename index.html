@@ -927,62 +927,6 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
     });
   }
 
-<script>
-
-<button id="enablePushBtn" type="button">
-  🔔 Aktifkan Notifikasi
-</button>
-
-<p id="pushStatus" role="status">
-  Menunggu pengujian...
-</p>
-
-<script>
-(() => {
-  const button = document.getElementById("enablePushBtn");
-  const status = document.getElementById("pushStatus");
-
-  if (!button || !status) {
-    console.error("Tombol atau elemen status tidak ditemukan.");
-    return;
-  }
-
-  status.textContent = "JavaScript berhasil dimuat.";
-
-  button.addEventListener("click", async () => {
-    status.textContent = "Tombol berhasil diklik!";
-    console.log("Tes tombol Web Push dimulai.");
-
-    try {
-      status.textContent =
-        "Service Worker: " +
-        ("serviceWorker" in navigator ? "didukung" : "tidak didukung") +
-        " | PushManager: " +
-        ("PushManager" in window ? "didukung" : "tidak didukung") +
-        " | Notification: " +
-        ("Notification" in window ? "didukung" : "tidak didukung");
-
-      console.log("URL halaman:", location.href);
-      console.log("Secure context:", window.isSecureContext);
-
-      if ("serviceWorker" in navigator) {
-        const registrations =
-          await navigator.serviceWorker.getRegistrations();
-
-        console.log(
-          "Service Worker terdaftar:",
-          registrations.map(r => ({
-            scope: r.scope,
-            active: r.active?.scriptURL || null
-          }))
-        );
-      }
-    } catch (error) {
-      console.error("Tes diagnosis gagal:", error);
-      status.textContent = "Tes gagal: " + error.message;
-    }
-  });
-})();
 </script>
   
 </body>
