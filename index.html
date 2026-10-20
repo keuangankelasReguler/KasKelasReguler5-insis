@@ -927,20 +927,17 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
     });
   }
  </script>
-  <button
-  id="enablePushBtn"
-  type="button"
-  onclick="alert('Tombol berhasil diklik!')"
-  style="position:relative; z-index:99999; pointer-events:auto; cursor:pointer;"
->
+ <button id="enablePushBtn" type="button">
   🔔 Aktifkan Notifikasi
 </button>
+
 <p id="pushStatus" role="status"></p>
 
 <script>
 const SUPABASE_URL =
   "https://aphawcqvvgzrxdifmknj.supabase.co";
 
+// Isi dengan key yang benar, bukan kata "sensor"
 const SUPABASE_ANON_KEY = "sb_publishable_YL0f1iA20zDA5n-uFvA9CQ_IySbslPA";
 const VAPID_PUBLIC_KEY = "BBMP7KLb0k54M_N-cewqWh5K4jp5c5DpO4lP4E1y_l5OLcGzdLxUi2j5CtOfYO6JFg4Psi3el137jllA5I7_y68";
 
@@ -949,6 +946,7 @@ function decodeVapidKey(key) {
   const base64 = (key + padding)
     .replace(/-/g, "+")
     .replace(/_/g, "/");
+
   const raw = atob(base64);
   return Uint8Array.from(raw, c => c.charCodeAt(0));
 }
@@ -958,28 +956,55 @@ const pushStatus = document.getElementById("pushStatus");
 
 pushButton.addEventListener("click", async () => {
   pushButton.disabled = true;
-  pushStatus.textContent = "Mengaktifkan notifikasi...";
+  pushStatus.textContent = "Memeriksa dukungan notifikasi...";
 
   try {
-    if (!("serviceWorker" in navigator) ||
-        !("PushManager" in window) ||
-        !("Notification" in window)) {
-      throw new Error("Browser ini belum mendukung Web Push.");
+    if (
+      !("serviceWorker" in navigator) ||
+      !("PushManager" in window) ||
+      !("Notification" in window)
+    ) {
+      throw new Error("Browser belum mendukung Web Push.");
+    }
+
+    if (
+      SUPABASE_ANON_KEY.includes("ISI_") ||
+      VAPID_PUBLIC_KEY.includes("ISI_")
+    ) {
+      throw new Error("Key belum diisi dengan benar.");
     }
 
     const permission = await Notification.requestPermission();
+
     if (permission !== "granted") {
       throw new Error("Izin notifikasi belum diberikan.");
     }
 
-    const registration = await navigator.serviceWorker.register(
-      "./service-worker.js",
-      { scope: "./" }
-    );
+    const registration =
+      await navigator.serviceWorker.register("./service-worker.js", {
+        scope: "./"
+      });
 
     await navigator.serviceWorker.ready;
 
-    let subscription = await registration.pushManager.getSubscription();
+    let subscription =
+      await registration.pushManager.getSubscription();
+
+    if (subscription) {
+      const oldKey = subscription.options.applicationServerKey;
+      const oldBytes = oldKey ? new Uint8Array(oldKey) : null;
+      const newBytes = decodeVapidKey(VAPID_PUBLIC_KEY);
+
+      const sameKey =
+        oldBytes &&
+        oldBytes.length === newBytes.length &&
+        oldBytes.every((byte, i) => byte === newBytes[i]);
+
+      if (!sameKey) {
+        await subscription.unsubscribe();
+        subscription = null;
+      }
+    }
 
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
@@ -987,6 +1012,9 @@ pushButton.addEventListener("click", async () => {
         applicationServerKey: decodeVapidKey(VAPID_PUBLIC_KEY)
       });
     }
+
+    pushStatus.textContent =
+      "Notifikasi aktif di browser. Menyimpan pendaftaran...";
 
     const response = await fetch(
       SUPABASE_URL + "/functions/v1/subscribe-push",
@@ -1004,12 +1032,17 @@ pushButton.addEventListener("click", async () => {
     );
 
     if (!response.ok) {
-      throw new Error("Pendaftaran gagal (HTTP " + response.status + ").");
+      const detail = await response.text();
+      throw new Error(
+        "Supabase menolak pendaftaran (HTTP " +
+        response.status + "). " + detail.slice(0, 180)
+      );
     }
 
-    pushStatus.textContent = "Pendaftaran notifikasi berhasil!";
+    pushStatus.textContent =
+      "Pendaftaran notifikasi berhasil disimpan!";
   } catch (error) {
-    console.error(error);
+    console.error("Kesalahan Web Push:", error);
     pushStatus.textContent = "Gagal: " + error.message;
   } finally {
     pushButton.disabled = false;
