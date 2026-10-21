@@ -928,6 +928,25 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
   }
 
 </script>
+  <div id="memberPushPanel" style="display:none;max-width:480px;margin:20px auto;padding:18px;border:1px solid #ddd;border-radius:12px;background:#fff">
+  <h3>🔔 Aktifkan Notifikasi Kas Kelas</h3>
+  <p>Masukkan kode aktivasi yang diberikan bendahara untuk menerima pengingat pembayaran kas melalui browser.</p>
+
+  <label for="memberPushCode">Kode aktivasi</label>
+  <input
+    id="memberPushCode"
+    type="text"
+    autocomplete="off"
+    placeholder="Masukkan kode aktivasi"
+    style="display:block;width:100%;box-sizing:border-box;padding:12px;margin:8px 0 12px;border:1px solid #ccc;border-radius:8px"
+  >
+
+  <button id="memberPushActivate" type="button" class="btn btn-primary" style="width:100%">
+    Aktifkan Notifikasi
+  </button>
+
+  <p id="memberPushStatus" role="status" style="margin-top:12px"></p>
+</div>
   
 </body>
 </html>
