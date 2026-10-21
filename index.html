@@ -1046,5 +1046,175 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
   });
 })();
 </script>
+  <script>
+(() => {
+  const panel = document.createElement('section');
+  panel.id = 'managerPushPanel';
+  panel.className = 'panel';
+  panel.style.cssText =
+    'display:none;max-width:600px;margin:20px auto;padding:20px';
+
+  panel.innerHTML = `
+    <h3>🔔 Pengelolaan Notifikasi Anggota</h3>
+    <p class="muted">
+      Buat kode aktivasi khusus untuk anggota yang ingin menerima
+      pengingat pembayaran kas melalui browser.
+    </p>
+
+    <div class="field">
+      <label for="pushMemberSelect">Pilih anggota</label>
+      <select id="pushMemberSelect" style="width:100%">
+        <option value="">-- Pilih anggota --</option>
+      </select>
+    </div>
+
+    <button id="createMemberPushCode" type="button"
+      class="btn btn-primary">
+      Buat Kode Aktivasi
+    </button>
+
+    <div id="managerPushStatus" role="status"
+      style="margin-top:14px;overflow-wrap:anywhere"></div>
+
+    <div id="managerPushCodeResult"
+      style="display:none;margin-top:12px;padding:14px;border:1px solid #ddd;border-radius:8px">
+      <p><strong>Nama anggota:</strong>
+        <span id="pushCodeMemberName"></span>
+      </p>
+      <p><strong>Kode aktivasi:</strong></p>
+      <code id="pushCodeValue"
+        style="display:block;overflow-wrap:anywhere;font-size:16px"></code>
+      <p class="muted">Kode hanya berlaku selama 24 jam dan hanya dapat digunakan sekali.</p>
+      <button id="copyMemberPushCode" type="button"
+        class="btn btn-light">Salin Kode</button>
+    </div>
+  `;
+
+  document.body.appendChild(panel);
+
+  const select = panel.querySelector('#pushMemberSelect');
+  const createButton = panel.querySelector('#createMemberPushCode');
+  const status = panel.querySelector('#managerPushStatus');
+  const result = panel.querySelector('#managerPushCodeResult');
+  const codeValue = panel.querySelector('#pushCodeValue');
+
+  function updatePanel() {
+    panel.style.display = isManager ? 'block' : 'none';
+
+    if (!isManager) return;
+
+    const previousValue = select.value;
+    const members = Array.isArray(db.members) ? db.members : [];
+
+    select.innerHTML =
+      '<option value="">-- Pilih anggota --</option>';
+
+    for (const member of members) {
+      const option = document.createElement('option');
+      option.value = String(member.id);
+      option.textContent = String(member.name || 'Anggota');
+      select.appendChild(option);
+    }
+
+    if (members.some(m => String(m.id) === previousValue)) {
+      select.value = previousValue;
+    }
+  }
+
+  createButton.addEventListener('click', async () => {
+    const memberId = select.value;
+
+    if (!isManager || !currentUser) {
+      status.textContent = 'Silakan masuk sebagai bendahara terlebih dahulu.';
+      return;
+    }
+
+    if (!memberId) {
+      status.textContent = 'Pilih anggota terlebih dahulu.';
+      return;
+    }
+
+    createButton.disabled = true;
+    status.textContent = 'Sedang membuat kode aktivasi…';
+    result.style.display = 'none';
+
+    try {
+      const { data, error } = await supabaseClient.functions.invoke(
+        'create-member-push-code',
+        {
+          body: { member_id: memberId }
+        }
+      );
+
+      if (error) {
+        let message = error.message || 'Permintaan gagal.';
+        try {
+          const response = await error.context?.json();
+          if (response?.error) message = response.error;
+        } catch (_) {}
+        throw new Error(message);
+      }
+
+      if (!data?.success || !data?.registration_code) {
+        throw new Error(data?.error || 'Kode aktivasi gagal dibuat.');
+      }
+
+      panel.querySelector('#pushCodeMemberName').textContent =
+        data.member_name || '';
+
+      codeValue.textContent = data.registration_code;
+      result.style.display = 'block';
+      status.textContent =
+        'Kode berhasil dibuat. Bagikan secara pribadi kepada anggota yang dipilih.';
+
+    } catch (error) {
+      console.error('Pembuatan kode aktivasi gagal:', error);
+      status.textContent =
+        error.message || 'Gagal membuat kode aktivasi. Silakan coba kembali.';
+    } finally {
+      createButton.disabled = false;
+    }
+  });
+
+  panel.querySelector('#copyMemberPushCode').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(codeValue.textContent);
+      status.textContent = 'Kode aktivasi berhasil disalin.';
+    } catch (_) {
+      status.textContent =
+        'Penyalinan otomatis gagal. Silakan pilih dan salin kode secara manual.';
+    }
+  });
+
+  // Perbarui daftar anggota saat halaman dirender.
+  const originalRenderAll = window.renderAll;
+
+  if (typeof originalRenderAll === 'function') {
+    window.renderAll = function (...args) {
+      const output = originalRenderAll.apply(this, args);
+      updatePanel();
+      return output;
+    };
+  }
+
+  // Pemeriksaan awal dan pembaruan setelah login.
+  updatePanel();
+
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', () => {
+      setTimeout(updatePanel, 1000);
+    });
+  }
+
+  const publicButton = document.getElementById('publicViewButton');
+  if (publicButton) {
+    publicButton.addEventListener('click', () => {
+      setTimeout(updatePanel, 1000);
+    });
+  }
+})();
+</script>
+  
 </body>
 </html>
