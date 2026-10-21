@@ -1215,6 +1215,45 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
   }
 })();
 </script>
+  <script>
+(() => {
+  const panel = document.getElementById('memberPushPanel');
+  if (!panel) return;
+
+  function updateMemberPushPanel() {
+    panel.style.display =
+      (!isManager && publicMode) ? 'block' : 'none';
+  }
+
+  const oldRenderAll = window.renderAll;
+
+  if (typeof oldRenderAll === 'function') {
+    window.renderAll = function (...args) {
+      const result = oldRenderAll.apply(this, args);
+      updateMemberPushPanel();
+      return result;
+    };
+  }
+
+  const publicButton = document.getElementById('publicViewButton');
+
+  if (publicButton) {
+    publicButton.addEventListener('click', () => {
+      setTimeout(updateMemberPushPanel, 1000);
+    });
+  }
+
+  const loginForm = document.getElementById('loginForm');
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', () => {
+      setTimeout(updateMemberPushPanel, 1000);
+    });
+  }
+
+  updateMemberPushPanel();
+})();
+</script>
   
 </body>
 </html>
