@@ -292,50 +292,78 @@ td {
   }
 }
   
-/* Perbaikan tabel Data Anggota, Pembayaran, dan Transaksi di HP */
-@media (max-width: 760px) {
+/* Tabel responsif: semua kolom terlihat di HP */
+@media screen and (max-width: 760px) {
   .table-panel {
     width: 100%;
     max-width: 100%;
+    padding: 0;
     overflow: hidden;
+    box-sizing: border-box;
   }
 
   .table-scroll {
     width: 100%;
     max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    box-sizing: border-box;
   }
 
   .table-scroll table {
     width: 100%;
-    min-width: 620px;
+    min-width: 0 !important;
+    table-layout: fixed;
+    border-collapse: collapse;
   }
 
   .table-scroll th,
   .table-scroll td {
-    padding: 10px 12px;
+    padding: 6px 3px;
+    font-size: 10px;
     white-space: normal;
     overflow-wrap: anywhere;
+    word-break: break-word;
+    box-sizing: border-box;
   }
 
-  .table-scroll .person {
-    min-width: 130px;
+  .table-scroll th {
+    font-size: 9px;
+  }
+
+  .table-scroll button {
+    padding: 5px 4px;
+    margin: 2px 0;
+    font-size: 9px;
+    white-space: normal;
   }
 
   .table-scroll .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .table-scroll .person {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .toolbar {
+    width: 100%;
+    box-sizing: border-box;
     flex-wrap: wrap;
   }
 
-  .toolbar,
   .toolbar-left,
   .toolbar-right {
     max-width: 100%;
+    flex-wrap: wrap;
   }
 
   .search {
     width: 100%;
     min-width: 0;
+    box-sizing: border-box;
   }
 }
 </style>
