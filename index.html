@@ -317,6 +317,7 @@ td {
     <button class="active" data-page="dashboard"><span class="ico">◫</span>Dashboard</button>
     <button data-page="members"><span class="ico">♙</span>Data Anggota</button>
     <button data-page="payments"><span class="ico">✓</span>Pembayaran Kas</button>
+    <button data-page="qris"><span class="ico">▦</span>QRIS Kas Kelas</button>
     <button data-page="transactions"><span class="ico">⇄</span>Transaksi Keuangan</button>
     <button data-page="reports"><span class="ico">▤</span>Laporan</button>
     <button data-page="structure"><span class="ico">♧</span>Struktur Organisasi Kelas</button>
@@ -358,6 +359,55 @@ td {
     <div class="stats" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div class="stat"><div class="stat-head">Target Kas Bulan Ini</div><div class="stat-value" id="targetCash">Rp0</div></div><div class="stat"><div class="stat-head">Sudah Dibayar</div><div class="stat-value green" id="paidCash">Rp0</div></div><div class="stat"><div class="stat-head">Belum Dibayar</div><div class="stat-value red" id="unpaidCash">Rp0</div></div></div>
     <div class="panel table-panel"><div class="table-scroll"><table><thead><tr><th>Anggota</th><th>Tagihan</th><th>Dibayar</th><th>Sisa</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="paymentsTable"></tbody></table></div><div class="page-number" id="paymentCount"></div></div>
   </section>
+
+  <!-- HALAMAN QRIS KAS KELAS -->
+<section class="page" id="page-qris">
+  <div class="section-title">
+    <h2>QRIS Kas Kelas</h2>
+    <p>Bayar iuran kas kelas dengan mudah menggunakan QRIS.</p>
+  </div>
+
+  <div class="panel" style="max-width:650px;margin:auto;text-align:center;padding:24px">
+    <h3 style="margin-top:0">QRIS Kas Kelas INSIS</h3>
+
+    <p class="muted">
+      Scan kode QR di bawah ini menggunakan aplikasi pembayaran
+      yang mendukung QRIS.
+    </p>
+
+    <img
+      src="./qris-kas-kelas.jpg"
+      alt="QRIS pembayaran kas kelas INSIS"
+      style="display:block;width:100%;max-width:430px;height:auto;margin:20px auto;border-radius:12px"
+    >
+
+    <a
+      href="./qris-kas-kelas.jpg"
+      download="QRIS-Kas-Kelas-INSIS.jpg"
+      class="btn btn-primary"
+      style="text-decoration:none"
+    >
+      ⇩ Unduh Gambar QRIS
+    </a>
+
+    <div class="notice" style="margin-top:22px;text-align:left">
+      <strong>Petunjuk pembayaran:</strong>
+      <ol style="padding-left:20px;line-height:1.9">
+        <li>Buka aplikasi mobile banking atau dompet digital yang mendukung QRIS.</li>
+        <li>Scan gambar QRIS atau gunakan gambar yang sudah diunduh.</li>
+        <li>Masukkan nominal pembayaran sesuai iuran kas yang harus dibayar.</li>
+        <li>Periksa nama penerima dan nominal sebelum menyelesaikan pembayaran.</li>
+        <li>Simpan bukti pembayaran dan kirimkan kepada bendahara kelas.</li>
+      </ol>
+    </div>
+
+    <p class="muted" style="font-size:12px">
+      Status pembayaran kas tetap mengikuti pencatatan yang sudah ada
+      di aplikasi. Silakan konfirmasi pembayaran kepada bendahara.
+    </p>
+  </div>
+</section>
+<!-- AKHIR HALAMAN QRIS -->
 
   <section class="page" id="page-transactions">
     <div class="section-title"><h2>Transaksi Keuangan</h2><p>Semua pemasukan dan pengeluaran kelas, lengkap dengan kategori, tanggal, dan keterangan.</p></div>
@@ -484,7 +534,7 @@ async function persistCloudData(){
 }
 async function save(){if(!isManager){toast('Mode baca-saja: perubahan tidak diizinkan');return}try{await persistCloudData();localStorage.setItem(KEY,JSON.stringify(db));renderAll();toast('Data tersimpan dan tersinkron ke Supabase')}catch(err){console.error(err);if(String(err.message||'').startsWith('KONFLIK:')){try{await loadManagerData();localStorage.setItem(KEY,JSON.stringify(db));renderAll();toast('Ada perubahan bersamaan. Data terbaru dimuat ulang; ulangi perubahan Anda.')}catch(reloadErr){toast('Konflik data terdeteksi. Muat ulang aplikasi sebelum mencoba lagi.')}}else{toast('Gagal menyinkronkan: '+(err.message||'periksa koneksi'))}}}
 async function signOutApp(){if(publicMode){publicMode=false;isManager=false;currentUser=null;lockApp();return}await supabaseClient.auth.signOut();isManager=false;publicMode=false;currentUser=null;lockApp()}
-async function enterPublicMode(){setAuthError('');try{publicMode=true;isManager=false;currentUser=null;await loadPublicData();showApp();document.querySelectorAll('.nav button[data-page]').forEach(b=>{b.style.display=['dashboard','members','payments','transactions','reports','structure'].includes(b.dataset.page)?'flex':'none'});document.querySelectorAll('#page-members .toolbar-right button, #page-payments .toolbar-right button, #page-transactions .toolbar-right button').forEach(b=>{if(b.textContent.includes('Tambah')||b.textContent.includes('Catat')||b.textContent.includes('Setorkan'))b.style.display='none'});document.querySelectorAll('#page-members .actions, #page-payments button, #page-transactions button').forEach(b=>{if(b.matches('button'))b.style.display='none'});go('dashboard');renderAll()}catch(err){publicMode=false;setAuthError('Gagal memuat data publik. Periksa view public_class_settings, public_members, public_payments, dan public_transactions.');console.error(err)}}
+async function enterPublicMode(){setAuthError('');try{publicMode=true;isManager=false;currentUser=null;await loadPublicData();showApp();document.querySelectorAll('.nav button[data-page]').forEach(b=>{b.style.display=['dashboard','members','payments','qris','transactions','reports','structure'].includes(b.dataset.page)?'flex':'none'});document.querySelectorAll('#page-members .toolbar-right button, #page-payments .toolbar-right button, #page-transactions .toolbar-right button').forEach(b=>{if(b.textContent.includes('Tambah')||b.textContent.includes('Catat')||b.textContent.includes('Setorkan'))b.style.display='none'});document.querySelectorAll('#page-members .actions, #page-payments button, #page-transactions button').forEach(b=>{if(b.matches('button'))b.style.display='none'});go('dashboard');renderAll()}catch(err){publicMode=false;setAuthError('Gagal memuat data publik. Periksa view public_class_settings, public_members, public_payments, dan public_transactions.');console.error(err)}}
 document.getElementById('loginForm').addEventListener('submit',async e=>{e.preventDefault();const button=e.target.querySelector('button[type="submit"]');button.disabled=true;button.textContent='Memeriksa akun…';setAuthError('');try{const {data,error}=await supabaseClient.auth.signInWithPassword({email:document.getElementById('loginEmail').value.trim(),password:document.getElementById('loginPassword').value});if(error)throw error;currentUser=data.user;isManager=true;publicMode=false;await loadManagerData();document.querySelectorAll('.nav button[data-page]').forEach(b=>b.style.display='flex');document.querySelectorAll('#page-members .toolbar-right button, #page-payments .toolbar-right button, #page-members .actions button, #page-payments button, #page-transactions .toolbar-right button, #page-transactions button').forEach(b=>b.style.display='');showApp();renderAll();go('dashboard')}catch(err){isManager=false;setAuthError('Tidak bisa masuk atau memuat data. Periksa email/kata sandi dan kebijakan Supabase.');console.error(err)}finally{button.disabled=false;button.textContent='Masuk sebagai Pengelola'}});
 document.getElementById('publicViewButton').addEventListener('click',enterPublicMode);
 
@@ -496,7 +546,7 @@ function paidAmount(memberId,y,m){return getPayment(memberId,y,m)?.amount||0}
 function statusFor(amount,due){return amount>=due?'Lunas':amount>0?'Sebagian':'Belum bayar'}
 function badgeStatus(status){let cls=status==='Lunas'?'paid':status==='Sebagian'?'partial':'unpaid';return `<span class="pill ${cls}">${esc(status)}</span>`}
 function initials(name){return String(name||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase()}
-function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));document.querySelectorAll('.nav button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const titles={dashboard:['OVERVIEW','Dashboard Keuangan'],members:['DATA KELAS','Data Anggota'],payments:['IURAN BULANAN','Pembayaran Kas'],transactions:['BUKU KAS','Transaksi Keuangan'],reports:['REKAP & ARSIP','Laporan Keuangan'],structure:['ORGANISASI','Struktur Organisasi Kelas'],settings:['PREFERENSI','Pengaturan Kelas']};document.getElementById('crumb').textContent=titles[page][0];document.getElementById('pageTitle').textContent=titles[page][1];document.getElementById('sidebar').classList.remove('open');if(page==='reports')renderReports();if(page==='payments')renderPayments();if(page==='members')renderMembers();if(page==='transactions')renderTransactions();if(page==='dashboard')drawChart();if(page==='structure')renderStructure()}
+function go(page){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+page));document.querySelectorAll('.nav button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const titles={dashboard:['OVERVIEW','Dashboard Keuangan'],members:['DATA KELAS','Data Anggota'],payments:['IURAN BULANAN','Pembayaran Kas'],qris:['PEMBAYARAN','QRIS Kas Kelas'],transactions:['BUKU KAS','Transaksi Keuangan'],reports:['REKAP & ARSIP','Laporan Keuangan'],structure:['ORGANISASI','Struktur Organisasi Kelas'],settings:['PREFERENSI','Pengaturan Kelas']};document.getElementById('crumb').textContent=titles[page][0];document.getElementById('pageTitle').textContent=titles[page][1];document.getElementById('sidebar').classList.remove('open');if(page==='reports')renderReports();if(page==='payments')renderPayments();if(page==='members')renderMembers();if(page==='transactions')renderTransactions();if(page==='dashboard')drawChart();if(page==='structure')renderStructure()}
 document.querySelectorAll('.nav button[data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
 document.getElementById('menuBtn').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
 function fillMonthSelect(el,selectedM=currentMonth()){el.innerHTML=MONTHS.map((m,i)=>`<option value="${i}" ${i===selectedM?'selected':''}>${m}</option>`).join('')}
