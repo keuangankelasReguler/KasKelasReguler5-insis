@@ -292,6 +292,52 @@ td {
   }
 }
   
+/* Perbaikan tabel Data Anggota, Pembayaran, dan Transaksi di HP */
+@media (max-width: 760px) {
+  .table-panel {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-scroll table {
+    width: 100%;
+    min-width: 620px;
+  }
+
+  .table-scroll th,
+  .table-scroll td {
+    padding: 10px 12px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .table-scroll .person {
+    min-width: 130px;
+  }
+
+  .table-scroll .actions {
+    flex-wrap: wrap;
+  }
+
+  .toolbar,
+  .toolbar-left,
+  .toolbar-right {
+    max-width: 100%;
+  }
+
+  .search {
+    width: 100%;
+    min-width: 0;
+  }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
