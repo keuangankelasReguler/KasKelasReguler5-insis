@@ -1140,7 +1140,11 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
     </div>
   `;
 
-  document.body.appendChild(panel);
+ const membersPage = document.querySelector('#page-members');
+
+if (membersPage) {
+  membersPage.appendChild(panel);
+}
 
   const select = panel.querySelector('#pushMemberSelect');
   const createButton = panel.querySelector('#createMemberPushCode');
@@ -1149,10 +1153,14 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
   const codeValue = panel.querySelector('#pushCodeValue');
 
   function updatePanel() {
-    panel.style.display = isManager ? 'block' : 'none';
+  const membersPage = document.querySelector('#page-members');
+  const isMembersPage =
+    membersPage && membersPage.classList.contains('active');
 
-    if (!isManager) return;
+  panel.style.display =
+    isManager && isMembersPage ? 'block' : 'none';
 
+  if (!isManager) return;
     const previousValue = select.value;
     const members = Array.isArray(db.members) ? db.members : [];
 
@@ -1263,6 +1271,12 @@ initSelects();lockApp();document.getElementById('sessionButton').style.display='
       setTimeout(updatePanel, 1000);
     });
   }
+  // Perbarui tampilan panel saat menu berpindah.
+document.querySelectorAll('[data-page]').forEach(button => {
+  button.addEventListener('click', () => {
+    setTimeout(updatePanel, 100);
+  });
+});
 })();
 </script>
   <script>
